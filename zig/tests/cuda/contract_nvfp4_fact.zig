@@ -92,7 +92,7 @@ pub fn spec(kind: Kind) c.Spec {
     const why = "a bf16 sum that collapses moves the output by about itself, and the epilogue's three bf16 roundings already allow 3 u of it: at most 1 / (3 u) = 85x is provable";
     // 1,024 rows: 128+ items of 16 pairs, 2,560+ gate-up and 10,240+ down units; waves kinds grow it past one wave
     const up_served = &[_]c.Shape{ .{ .rows = 1, .n = 640, .k = 2560 }, .{ .rows = 4, .n = 640, .k = 2560 }, .{ .rows = 16, .n = 640, .k = 2560 }, .{ .rows = waves_rows, .n = 640, .k = 2560 } };
-    // the half entry also serves GLM-5.3-Flash's decode gate-up (cuda_experts.zig): TP=2's 1,024-wide rank, TP=3's 704 and 640
+    // the half entry also serves GLM-5.3-Flash's decode gate-up: TP=2's 1,024-wide rank, TP=3's 704 and 640
     const up_half_served = up_served[0..3] ++ &[_]c.Shape{ .{ .rows = 1, .n = 1024, .k = 4096 }, .{ .rows = 16, .n = 1024, .k = 4096 }, .{ .rows = 16, .n = 704, .k = 4096 }, .{ .rows = 16, .n = 640, .k = 4096 } };
     const down_served = &[_]c.Shape{ .{ .rows = 1, .n = 2560, .k = 640 }, .{ .rows = 4, .n = 2560, .k = 640 }, .{ .rows = 16, .n = 2560, .k = 640 }, .{ .rows = waves_rows, .n = 2560, .k = 640 } };
     const why2 = "the bf16 rounding before the square is allowed in the bound (2 u of the output), so a short sum stands out less than in SwiGLU: fp16 and bf16 sums miss by 64x";
