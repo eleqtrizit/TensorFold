@@ -51,7 +51,11 @@ pub fn run(ks: *const Kernels, stream: cuda.Stream, which: Which, l: cuda.expert
     const in: cuda.experts.Rows = .{ .x = x, .stride = x_stride, .slots = plan.slots };
     const pairs = rows * plan.slots;
     if (plan.prompt) return g.prompt(stream, epi, in, l, plan.route, out, maxItems(pairs, plan.experts, staged_tile), skip);
-    return g.decode(stream, epi, in, l, plan.route, out, maxItems(pairs, plan.experts, tile), skip);
+    const items = maxItems(pairs, plan.experts, tile);
+    // NVFP4 decode as Flash Next runs it: two warps a unit while the half units fit, equal waves past one wave,
+    // else the classic kernel; every entry gives the classic kernel's bits (experts_waves.zig)
+    if (l.format == .nvfp4) return cuda.experts_waves.run(&ks.nvfp4, stream, epi, in, l, plan.route, out, items, skip);
+    return g.decode(stream, epi, in, l, plan.route, out, items, skip);
 }
 
 test "plan sizes as the Python family's" {
