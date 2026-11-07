@@ -4,6 +4,8 @@ Each release's page on GitHub has its notes and measurements. See [the 1.0.0 rel
 
 ## Unreleased
 
+- NVFP4 routed experts on CUDA: the decode expert kernels feed each warp from a cp.async ring four k-groups deep, with the same sums in the same order, so tokens are unchanged. GLM-5.3-Flash at TP=2 on two RTX PRO 6000 Blackwell (sm_120) decodes 24% faster without drafts (83.7 to 104.1 tok/s) and 7% to 13% faster with them. On a GB10 the blocks per SM go from 4 to 2: Nemotron 3.5 Lightning NVFP4 is 0.4% to 3.3% faster, and Qwen3.6-35B-A3B NVFP4 is level within noise, from -1.8% (sampled code, 1 stream) to +5.3% (#2266, fixes #2265).
+
 - With `--ssd-experts`, the expert pool counts uses, so an expert used once leaves before one used again. On an M3 Ultra, Flash Next reads about 11% less from disk at 17 and 35 GiB pools, and a mixed workload took 8% less time at 35 GiB, with the same replies (#2209).
 
 - Flash Next on a Mac without tensor units, with `--parallel` above one: a lone reply runs as fast as at `--parallel 1`. On an M3 Ultra, sampled replies are 12-19% faster and greedy ones about 4%, with the same tokens, and a second request joining a reply leaves it unchanged (#2199).
